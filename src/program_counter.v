@@ -42,3 +42,5 @@ always @(posedge clk or posedge reset) begin // senstivity list -> rising edge o
 end
 
 
+
+

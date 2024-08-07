@@ -1,35 +1,89 @@
-module program_counter (
-    input wire clk, //clk input
-    input wire reset, // reset signal
-    input wire enable, // enable signal
-    input wire branch, // signal indicating a branch
-    input wire jump, //  signal indicating a jump
-    input wire [15:0] branch_target, // branch target address
-    input wire [15:0] jump_target, // jump target address
-    output reg [15:0] pc    // current program counter val (16 bits)
+module rvc_cpu (
+    input wire clk,
+    input wire reset,
+    output wire [15:0] pc
 );
 
+    // Internal signals
+    wire [15:0] instruction;
+    wire [3:0] opcode;
+    wire [2:0] rd, rs1, rs2, funct3;
+    wire [5:0] immediate;
+    wire [15:0] reg_write_data, reg_read_data1, reg_read_data2;
+    wire [15:0] alu_result;
+    wire [15:0] mem_read_data;
+    wire [3:0] alu_op;
+    wire reg_write, mem_read, mem_write, branch, jump, zero;
+    wire [15:0] branch_target, jump_target;
 
-// 16-bit program counter
-wire [15:0] pc_plus_2 = pc + 16'd2;
-//calculate the next seq pc value (curr pc+2)
-// add 2 bc each instruction is 16 bits wide aka 2 bytes
+    // Program Counter
+    program_counter pc_module (
+        .clk(clk),
+        .reset(reset),
+        .enable(1'b1),
+        .branch(branch & zero),
+        .jump(jump),
+        .branch_target(branch_target),
+        .jump_target(jump_target),
+        .pc(pc)
+    );
 
-wire [15:0] next_pc = jump ? jump_target :
-                      branch ? branch_target :
-                      pc_plus_2;
-// determine next pc val based on ctl signals
-// priority: jump > branch > seq
+    // Instruction Memory (placeholder - replace with actual memory)
+    assign instruction = 16'h0000; // Replace with actual instruction fetch
 
+    // Instruction Decoder
+    instruction_decoder id (
+        .instruction(instruction),
+        .opcode(opcode),
+        .rd(rd),
+        .rs1(rs1),
+        .rs2(rs2),
+        .immediate(immediate),
+        .funct3(funct3)
+    );
 
-// sequential always block to update pc val
-//
-always @(posedge clk or posedge reset) begin
-    if (reset)
-        pc <= 16'b0; //on reset, set pc to 0 (0000000000000000)
-    else if (enable)
-        pc <= next_pc;// If enabled, update PC to the calculated next PC
-    // If not enabled, PC keeps its current value (implicit in Verilog)
-end
+    // Control Unit
+    control_unit cu (
+        .opcode(opcode),
+        .funct3(funct3),
+        .alu_op(alu_op),
+        .reg_write(reg_write),
+        .mem_read(mem_read),
+        .mem_write(mem_write),
+        .branch(branch),
+        .jump(jump)
+    );
+
+    // Register File
+    register_file rf (
+        .clk(clk),
+        .reset(reset),
+        .rs1(rs1),
+        .rs2(rs2),
+        .rd(rd),
+        .we(reg_write),
+        .write_data(reg_write_data),
+        .read_data1(reg_read_data1),
+        .read_data2(reg_read_data2)
+    );
+
+    // ALU
+    alu alu_module (
+        .alu_op(alu_op),
+        .operand1(reg_read_data1),
+        .operand2(reg_read_data2),
+        .result(alu_result),
+        .zero(zero)
+    );
+
+    // Data Memory (placeholder - replace with actual memory)
+    assign mem_read_data = 16'h0000; // Replace with actual memory read
+
+    // Write-back logic
+    assign reg_write_data = mem_read ? mem_read_data : alu_result;
+
+    // Branch and jump target calculation
+    assign branch_target = pc + {{10{immediate[5]}}, immediate};
+    assign jump_target = pc + {{10{immediate[5]}}, immediate};
 
 endmodule
