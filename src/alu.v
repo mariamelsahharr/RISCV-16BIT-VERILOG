@@ -25,3 +25,10 @@ module alu (
     assign zero = (result == 16'b0);
 
 endmodule
+/* for eda playgorunds sim
+`include "program_counter.v"
+`include "instruction_decoder.v"
+`include "control_unit.v"
+`include "register_file.v"
+`include "alu.v"
+*/

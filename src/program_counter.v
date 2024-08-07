@@ -41,6 +41,6 @@ always @(posedge clk or posedge reset) begin // senstivity list -> rising edge o
     // If not enabled, PC keeps its current value (implicit in Verilog)
 end
 
-
+endmodule
 
 
