@@ -27,6 +27,14 @@ module rvc_cpu_tb;
         // Add your test cases here
         // For example, you can monitor the PC value:
         #100 $display("PC value: %h", pc);
+        // or you can set breakpoints to inspect internal signals:
+        #100 $stop;
+        // or you can run a sequence of instructions:
+        // - Load a program into the instruction memory
+        // - Set the PC to the start address        
+        // - Run the simulation until the end
+        // - Inspect the register file contents
+        // - Inspect the memory contents
 
         // End simulation
         #1000 $finish;

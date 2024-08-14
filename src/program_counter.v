@@ -7,27 +7,29 @@
 
 
 // Define the program counter module with its inputs and outputs
+`include "rvc_params.v"
+
 module program_counter (
-    input wire clk,          // Clock input
-    input wire reset,        // Reset signal
-    input wire enable,       // Enable signal to allow stalling
-    input wire branch,       // Signal indicating a branch should be taken
-    input wire jump,         // Signal indicating a jump should be taken
-    input wire [15:0] branch_target,  // Target address for branch instructions
-    input wire [15:0] jump_target,    // Target address for jump instructions
-    output reg [15:0] pc     // Current program counter value (16 bits wide)
+    input wire clk,
+    input wire reset,
+    input wire enable,
+    input wire branch,
+    input wire jump,
+    input wire [`WORD_SIZE-1:0] branch_target,
+    input wire [`WORD_SIZE-1:0] jump_target,
+    output reg [`PC_WIDTH-1:0] pc
 );
 
 // Define the program counter logic
 
 // Calculate the next sequential PC value (current PC + 2)
 // We add 2 because each instruction is 16 bits (2 bytes) wide
-wire [15:0] pc_plus_2 = pc + 16'd2;
+wire [`PC_WIDTH-1:0] pc_plus_2 = pc + 16'd2;
 //16'd2 is a 16-bit decimal value 2
 
 // Determine the next PC value based on control signals
 // Priority: Jump > Branch > Sequential
-wire [15:0] next_pc = jump ? jump_target :    // If jump, use jump target
+wire [`PC_WIDTH-1:0]  next_pc = jump ? jump_target :    // If jump, use jump target
                       branch ? branch_target : // Else if branch, use branch target
                       pc_plus_2;               // Else use next sequential address
 
@@ -35,7 +37,7 @@ wire [15:0] next_pc = jump ? jump_target :    // If jump, use jump target
 // Sequential logic to update the PC on each clock cycle
 always @(posedge clk or posedge reset) begin // senstivity list -> rising edge of clk signal or of reset signal
     if (reset)
-        pc <= 16'b0;  // On reset, set PC to 0
+        pc <= {`PC_WIDTH{1'b0}};  // On reset, set PC to 0
     else if (enable)
         pc <= next_pc;  // If enabled, update PC to the calculated next PC
     // If not enabled, PC keeps its current value (implicit in Verilog)

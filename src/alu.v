@@ -8,16 +8,22 @@ module alu (
 
     always @(*) begin
         case (alu_op)
-            4'b0000: result = operand1 + operand2;  // ADD
-            4'b0001: result = operand1 - operand2;  // SUB
-            4'b0010: result = operand1 & operand2;  // AND
-            4'b0011: result = operand1 | operand2;  // OR
-            4'b0100: result = operand1 ^ operand2;  // XOR
-            4'b0101: result = operand1 << operand2[3:0];  // SLL
-            4'b0110: result = operand1 >> operand2[3:0];  // SRL
-            4'b0111: result = $signed(operand1) >>> operand2[3:0];  // SRA
-            4'b1000: result = ($signed(operand1) < $signed(operand2)) ? 16'd1 : 16'd0;  // SLT
-            4'b1001: result = (operand1 < operand2) ? 16'd1 : 16'd0;  // SLTU
+            `ALU_ADD: result = operand1 + operand2;  // ADD
+            `ALU_SUB: result = operand1 - operand2;  // SUB
+            `ALU_AND: result = operand1 & operand2;  // AND
+            `ALU_OR: result = operand1 | operand2;  // OR
+            `ALU_XOR: result = operand1 ^ operand2;  // XOR
+            `ALU_SLL:  result = operand1 << operand2[`REG_ADDR_WIDTH-1:0];
+            `ALU_SRL:  result = operand1 >> operand2[`REG_ADDR_WIDTH-1:0];
+            `ALU_SRA:  result = $signed(operand1) >>> operand2[`REG_ADDR_WIDTH-1:0];
+            //4'b1000: result = ($signed(operand1) < $signed(operand2)) ? 16'd1 : 16'd0;  // SLT
+         //   4'b1001: result = (operand1 < operand2) ? 16'd1 : 16'd0;  // SLTU
+         
+            `ALU_SLT:  result = ($signed(operand1) < $signed(operand2)) ? {{`WORD_SIZE-1{1'b0}}, 1'b1} : {`WORD_SIZE{1'b0}};
+            `ALU_SLTU: result = (operand1 < operand2) ? {{`WORD_SIZE-1{1'b0}}, 1'b1} : {`WORD_SIZE{1'b0}};
+            `ALU_MUL:  result = operand1 * operand2;
+            `ALU_DIV:  result = operand1 / operand2;
+            `ALU_ADD1: result = operand1 + 1;
             default: result = 16'b0;
         endcase
     end
@@ -25,10 +31,3 @@ module alu (
     assign zero = (result == 16'b0);
 
 endmodule
-/* for eda playgorunds sim
-`include "program_counter.v"
-`include "instruction_decoder.v"
-`include "control_unit.v"
-`include "register_file.v"
-`include "alu.v"
-*/
