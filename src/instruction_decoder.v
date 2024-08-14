@@ -1,43 +1,59 @@
+`include "rvc_params.v"
+
 module instruction_decoder (
-    input wire [15:0] instruction,
-    output reg [3:0] opcode,
-    output reg [2:0] rd,
-    output reg [2:0] rs1,
-    output reg [2:0] rs2,
-    output reg [5:0] immediate,
-    output reg [2:0] funct3
+    input wire [`INSTR_SIZE-1:0] instruction,
+    output reg [`OPCODE_WIDTH-1:0] opcode,
+    output reg [`REG_ADDR_WIDTH-1:0] rd,
+    output reg [`REG_ADDR_WIDTH-1:0] rs1,
+    output reg [`REG_ADDR_WIDTH-1:0] rs2,
+    output reg [`IMM_WIDTH-1:0] immediate,
+    output reg [`FUNCT3_WIDTH-1:0] funct3
 );
 
     always @(*) begin
-        opcode = instruction[1:0];
+        opcode = instruction[`OPCODE_FIELD];
         case (opcode)
-            2'b00: begin // CR-type
-                rd = instruction[11:9];
-                rs1 = instruction[11:9];
-                rs2 = instruction[6:4];
-                funct3 = instruction[15:13];
-                immediate = 6'b0;
+            `OPCODE_R_TYPE: begin
+                rd = instruction[`RD_FIELD];
+                rs1 = instruction[`RS1_FIELD];
+                rs2 = instruction[`RS2_FIELD];
+                funct3 = instruction[`FUNCT3_FIELD];
+                immediate = {`IMM_WIDTH{1'b0}};
             end
-            2'b01: begin // CI-type
-                rd = instruction[11:9];
-                rs1 = instruction[11:9];
-                immediate = {instruction[12], instruction[6:2]};
-                funct3 = instruction[15:13];
-                rs2 = 3'b0;
+            `OPCODE_I_TYPE: begin
+                rd = instruction[`RD_FIELD];
+                rs1 = instruction[`RS1_FIELD];
+                immediate = instruction[`IMM_FIELD];
+                funct3 = instruction[`FUNCT3_FIELD];
+                rs2 = {`REG_ADDR_WIDTH{1'b0}};
             end
-            2'b10: begin // CSS-type
-                rs2 = instruction[6:4];
-                immediate = instruction[12:7];
-                funct3 = instruction[15:13];
-                rd = 3'b0;
-                rs1 = 3'b0;
+            `OPCODE_LOAD, `OPCODE_STORE: begin
+                rd = instruction[`RD_FIELD];
+                rs1 = instruction[`RS1_FIELD];
+                immediate = instruction[`IMM_FIELD];
+                funct3 = instruction[`FUNCT3_FIELD];
+                rs2 = {`REG_ADDR_WIDTH{1'b0}};
             end
-            2'b11: begin // CIW-type
-                rd = instruction[4:2];
-                immediate = instruction[12:5];
-                funct3 = instruction[15:13];
-                rs1 = 3'b0;
-                rs2 = 3'b0;
+            `OPCODE_BRANCH: begin
+                rs1 = instruction[`RS1_FIELD];
+                rs2 = instruction[`RS2_FIELD];
+                immediate = instruction[`IMM_FIELD];
+                funct3 = instruction[`FUNCT3_FIELD];
+                rd = {`REG_ADDR_WIDTH{1'b0}};
+            end
+            `OPCODE_JAL: begin
+                rd = instruction[`RD_FIELD];
+                immediate = instruction[`IMM_FIELD];
+                funct3 = instruction[`FUNCT3_FIELD];
+                rs1 = {`REG_ADDR_WIDTH{1'b0}};
+                rs2 = {`REG_ADDR_WIDTH{1'b0}};
+            end
+            default: begin
+                rd = {`REG_ADDR_WIDTH{1'b0}};
+                rs1 = {`REG_ADDR_WIDTH{1'b0}};
+                rs2 = {`REG_ADDR_WIDTH{1'b0}};
+                immediate = {`IMM_WIDTH{1'b0}};
+                funct3 = {`FUNCT3_WIDTH{1'b0}};
             end
         endcase
     end

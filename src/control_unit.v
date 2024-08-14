@@ -1,7 +1,9 @@
+`include "rvc_params.v"
+
 module control_unit (
-    input wire [3:0] opcode,
-    input wire [2:0] funct3,
-    output reg [3:0] alu_op,
+    input wire [`OPCODE_WIDTH-1:0] opcode,
+    input wire [`FUNCT3_WIDTH-1:0] funct3,
+    output reg [`ALU_OP_WIDTH-1:0] alu_op,
     output reg reg_write,
     output reg mem_read,
     output reg mem_write,
@@ -11,7 +13,7 @@ module control_unit (
 
     always @(*) begin
         case (opcode)
-            4'b0000: begin // R-type
+            `OPCODE_R_TYPE: begin
                 alu_op = {1'b0, funct3};
                 reg_write = 1'b1;
                 mem_read = 1'b0;
@@ -19,7 +21,7 @@ module control_unit (
                 branch = 1'b0;
                 jump = 1'b0;
             end
-            4'b0001: begin // I-type
+            `OPCODE_I_TYPE: begin
                 alu_op = {1'b0, funct3};
                 reg_write = 1'b1;
                 mem_read = 1'b0;
@@ -27,32 +29,32 @@ module control_unit (
                 branch = 1'b0;
                 jump = 1'b0;
             end
-            4'b0010: begin // Load
-                alu_op = 4'b0000; // ADD for address calculation
+            `OPCODE_LOAD: begin
+                alu_op = `ALU_ADD;
                 reg_write = 1'b1;
                 mem_read = 1'b1;
                 mem_write = 1'b0;
                 branch = 1'b0;
                 jump = 1'b0;
             end
-            4'b0011: begin // Store
-                alu_op = 4'b0000; // ADD for address calculation
+            `OPCODE_STORE: begin
+                alu_op = `ALU_ADD;
                 reg_write = 1'b0;
                 mem_read = 1'b0;
                 mem_write = 1'b1;
                 branch = 1'b0;
                 jump = 1'b0;
             end
-            4'b0100: begin // Branch
-                alu_op = 4'b0001; // SUB for comparison
+            `OPCODE_BRANCH: begin
+                alu_op = `ALU_SUB;
                 reg_write = 1'b0;
                 mem_read = 1'b0;
                 mem_write = 1'b0;
                 branch = 1'b1;
                 jump = 1'b0;
             end
-            4'b0101: begin // JAL
-                alu_op = 4'b0000; // ADD for PC + 2
+            `OPCODE_JAL: begin
+                alu_op = `ALU_ADD;
                 reg_write = 1'b1;
                 mem_read = 1'b0;
                 mem_write = 1'b0;
@@ -60,7 +62,7 @@ module control_unit (
                 jump = 1'b1;
             end
             default: begin
-                alu_op = 4'b0000;
+                alu_op = `ALU_ADD;
                 reg_write = 1'b0;
                 mem_read = 1'b0;
                 mem_write = 1'b0;
